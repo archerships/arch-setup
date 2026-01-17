@@ -1,0 +1,46 @@
+---
+# roles/system/tasks/main.yml
+
+- name: Set system timezone
+  ansible.builtin.timezone:
+    name: "{{ timezone }}"
+  become: yes
+
+- name: Generate specified locale
+  community.general.locale_gen:
+    name: "{{ locale_lang }}"
+    state: present
+  become: yes
+
+- name: Set system locale
+  ansible.builtin.copy:
+    content: "LANG={{ locale_lang }}\n"
+    dest: /etc/locale.conf
+    owner: root
+    group: root
+    mode: '0644'
+  become: yes
+
+- name: Copy /etc/fstab from backup
+  ansible.builtin.copy:
+    src: /home/archer/arch-setup/etc/fstab
+    dest: /etc/fstab
+    owner: root
+    group: root
+    mode: '0644'
+  become: yes
+  ignore_errors: true # In case fstab was not backed up or should not be replaced blindly
+
+- name: Enable and start qemu-guest-agent
+  ansible.builtin.systemd:
+    name: qemu-guest-agent
+    enabled: yes
+    state: started
+  become: yes
+
+- name: Enable LightDM display manager
+  ansible.builtin.systemd:
+    name: lightdm
+    enabled: yes
+    state: started
+  become: yes

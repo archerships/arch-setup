@@ -1,0 +1,60 @@
+---
+# roles/packages/tasks/main.yml
+
+- name: Update pacman package database
+  ansible.builtin.pacman:
+    update_cache: yes
+  become: yes
+
+- name: Install official Arch packages
+  ansible.builtin.pacman:
+    name: "{{ arch_packages }}"
+    state: present
+  become: yes
+  vars:
+    arch_packages: "{{ arch_packages | default([]) }}" # Ensure variable is defined
+
+- name: Ensure git is installed for AUR helper
+  ansible.builtin.pacman:
+    name: git
+    state: present
+  become: yes
+
+- name: Check if yay (AUR helper) is installed
+  ansible.builtin.command: yay --version
+  register: yay_check
+  failed_when: yay_check.rc not in [0, 1]
+  changed_when: false
+  ignore_errors: true
+
+- name: Install yay (AUR helper) if not present
+  when: yay_check.rc != 0
+  block:
+    - name: Ensure base-devel is installed for building AUR packages
+      ansible.builtin.pacman:
+        name: base-devel
+        state: present
+      become: yes
+
+    - name: Clone yay repository
+      ansible.builtin.git:
+        repo: https://aur.archlinux.org/yay.git
+        dest: /tmp/yay
+        version: master
+      become: no # Run as current user
+
+    - name: Build and install yay
+      ansible.builtin.command: makepkg -si --noconfirm
+      args:
+        chdir: /tmp/yay
+      become: yes # makepkg -si requires root for installation
+
+- name: Install AUR packages using yay
+  ansible.builtin.command: yay -S --noconfirm "{{ item }}"
+  loop: "{{ aur_packages }}"
+  when: aur_packages is defined and aur_packages | length > 0
+  become: yes # yay might need root for installation
+  environment:
+    PATH: "/usr/local/bin:/usr/bin:/bin:/usr/local/sbin:/usr/sbin:/sbin" # Ensure yay is in PATH
+  vars:
+    aur_packages: "{{ aur_packages | default([]) }}" # Ensure variable is defined

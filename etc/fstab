@@ -1,0 +1,13 @@
+# Static information about the filesystems.
+# See fstab(5) for details.
+# <file system> <dir> <type> <options> <dump> <pass>
+# DEVICE DETAILS: /dev/vda2 PARTUUID=96b995b6-81bc-404e-9830-2b5b3febc29f PARTLABEL=ESP UUID=7EE5-EE59 LABEL=ESP
+# DEVICE DETAILS: /dev/vda3 PARTUUID=e81b9e79-509a-468e-8345-a458cd715ac9 PARTLABEL=XBOOTLDR UUID=7EE6-CE1F LABEL=XBOOTLDR
+# DEVICE DETAILS: /dev/vda4 PARTUUID=c19d06dc-9fbf-41ea-8573-8c1658294006 PARTLABEL=SWAP UUID=070780ce-1400-4e34-b1af-9a2c23af2b7c LABEL=SWAP
+# DEVICE DETAILS: /dev/vda5 PARTUUID=4f5d15f6-ba69-47c1-8195-1c8b4a1cb0bd PARTLABEL=ARCH_LINUX_ROOT UUID=40540e3f-6de8-43e3-8ba9-0c6b358a8273 LABEL=ARCH_ROOT
+# DEVICE DETAILS: /dev/vda6 PARTUUID=1e230d46-871d-447c-a6b5-2c19fb2b3bf1 PARTLABEL=ARCH_LINUX_HOME UUID=b32e936f-7c72-4134-834f-3e84363d4006 LABEL=ARCH_HOME
+PARTUUID=1e230d46-871d-447c-a6b5-2c19fb2b3bf1 /home btrfs defaults,noatime,subvol=home,compress=zstd:3,ssd 0 0
+PARTUUID=4f5d15f6-ba69-47c1-8195-1c8b4a1cb0bd / btrfs defaults,noatime,subvol=root,compress=zstd:3,ssd 0 0
+PARTUUID=96b995b6-81bc-404e-9830-2b5b3febc29f /efi vfat defaults 0 0
+PARTUUID=e81b9e79-509a-468e-8345-a458cd715ac9 /boot vfat defaults 0 0
+share /home/archer/av 9p trans=virtio,version=9p2000.L,rw,nofail,uid=1000,gid=1000 0 0

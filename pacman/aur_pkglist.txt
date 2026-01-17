@@ -1,0 +1,6 @@
+brave-bin
+espanso-x11
+fnm-bin
+gemini-cli-git
+pandoc-bin
+yay

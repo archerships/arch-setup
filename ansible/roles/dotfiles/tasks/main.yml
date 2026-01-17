@@ -1,0 +1,33 @@
+---
+# roles/dotfiles/tasks/main.yml
+
+- name: Define dotfiles repository path
+  ansible.builtin.set_fact:
+    dotfiles_repo_path: "{{ ansible_user_dir }}/.local/src/arch-setup"
+
+- name: Clone dotfiles repository
+  ansible.builtin.git:
+    repo: "file:///home/archer/arch-setup" # Use local path for now, or remote if pushed
+    dest: "{{ dotfiles_repo_path }}"
+    clone: yes
+    update: yes
+  become: no # Run as current user
+
+- name: Find dotfiles and directories to link
+  ansansible.builtin.find:
+    paths: "{{ dotfiles_repo_path }}/home"
+    hidden: yes # Include dotfiles like .bashrc
+    recurse: yes
+    file_type: any # Find both files and directories
+  register: dotfiles_to_link
+
+- name: Create symlinks for dotfiles and configurations
+  ansible.builtin.file:
+    src: "{{ item.path }}"
+    dest: "{{ ansible_user_dir }}/{{ item.path | replace(dotfiles_repo_path + '/home/', '') }}"
+    state: link
+    force: yes # Overwrite existing files/symlinks
+  loop: "{{ dotfiles_to_link.files }}"
+  loop_control:
+    label: "{{ item.path | replace(dotfiles_repo_path + '/home/', '') }}"
+  become: no # Run as current user
